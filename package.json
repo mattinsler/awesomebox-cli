@@ -1,0 +1,46 @@
+{
+  "name": "awesomebox-cli",
+  "description": "CLI for awesomebox",
+  "version": "0.0.1",
+  "homepage": "https://github.com/mattinsler/awesomebox-cli",
+  "author": {
+    "name": "Matt Insler",
+    "email": "matt.insler@gmail.com",
+    "url": "http://www.mattinsler.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mattinsler/awesomebox-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mattinsler/awesomebox-cli/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/mattinsler/awesomebox-cli/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "index.js",
+  "bin": {
+    "awesomebox": "./bin/awesomebox"
+  },
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "dependencies": {
+    "chalk": "~0.2.0",
+    "nopt": "~2.1.2",
+    "prompt": "~0.2.11",
+    "winston": "~0.7.2",
+    "osenv": "0.0.3",
+    "json3": "~3.2.5",
+    "walkabout": "~0.1.6",
+    "underscore": "~1.5.1",
+    "awesomebox.node": "0.0.7",
+    "async": "~0.2.9",
+    "syncr": "0.0.1"
+  },
+  "devDependencies": {},
+  "keywords": []
+}
