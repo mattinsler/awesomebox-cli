@@ -55,10 +55,10 @@ exports.redeem = (cb) ->
           @log 'Welcome to ' + chalk.blue.bold('awesomebox') + '!!!'
           @log('')
           @log "Now that you're a user, why don't you try creating a new box."
-          @log "Just type #{chalk.cyan('awesomebox push')} from your project folder to get started."
+          @log "Just type #{chalk.cyan('awesomebox save')} from your project folder to get started."
           @log('')
-          @log chalk.cyan('awesomebox push') + chalk.gray(" will create a new box on awesomebox.es and push a new")
-          @log chalk.gray("version of your box up to the server.")
+          @log chalk.cyan('awesomebox save') + chalk.gray(" will create a new box on awesomebox.es and save")
+          @log chalk.gray("your current work on the server.")
           
           @login(user)
           

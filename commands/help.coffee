@@ -3,8 +3,8 @@ chalk = require 'chalk'
 exports.help = (cb) ->
   @logger.help chalk.underline('Boxes')
   @logger.help('')
-  @logger.help chalk.cyan('awesomebox push')
-  @logger.help chalk.gray("Push a new version of your box up to the server.")
+  @logger.help chalk.cyan('awesomebox save')
+  @logger.help chalk.gray("Save a new version of your box on the server.")
   @logger.help('')
   @logger.help('')
   @logger.help('')

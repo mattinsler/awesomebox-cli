@@ -3,7 +3,7 @@ errors = require '../errors'
 config = require '../config'
 Synchronizer = require '../synchronizer'
 
-exports.push = (callback) ->
+exports.save = (callback) ->
   client = @client.keyed()
   return cb(errors.unauthorized()) unless client?
   
@@ -38,7 +38,7 @@ exports.push = (callback) ->
         box_config.set(box)
         
         @log('')
-        @log "Great! Now that you've created a box, we'll push your code up to it."
+        @log "Great! Now that you've created a box, we'll save your code to it."
         @log('')
         
         cb(null, box)
@@ -52,7 +52,7 @@ exports.push = (callback) ->
         @log('')
         create_box(cb)
       else
-        @log "Is this push for an already-existing box? Maybe one of these?"
+        @log "Are you saving a box that already exists? Maybe one of these?"
         @log('')
         
         x = 0
@@ -79,8 +79,8 @@ exports.push = (callback) ->
           @log('')
           create_box(cb)
   
-  push_code_to_box = (box, cb) =>
-    @log "Preparing your push to #{box.name}..."
+  save_code_to_box = (box, cb) =>
+    @log "Preparing to save #{box.name}..."
     @log('')
     
     synchronizer = new Synchronizer(client)
@@ -92,13 +92,13 @@ exports.push = (callback) ->
         @log "All of your files are up to date. Horay!"
       else
         @log('')
-        @log "All done pushing to #{box.name}!"
-        @log "We've created new version " + chalk.cyan(version) + ' for you'
+        @log "All done saving #{box.name}!"
+        @log "We've created new version " + chalk.cyan(version) + ' for you.'
       cb()
   
   get_box (err, box) ->
     return callback(err) if err?
-    push_code_to_box(box, callback)
+    save_code_to_box(box, callback)
 
 
 
