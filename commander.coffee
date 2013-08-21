@@ -15,7 +15,7 @@ logger.cli()
 
 
 class Commander
-  constructor: (@commands) ->
+  constructor: (@name, @commands) ->
     @filters =
       before: []
       after: []
@@ -64,6 +64,7 @@ class Commander
       params: args or []
       opts: opts
       log: logger.log.bind(logger, name)
+      error: logger.error.bind(logger)
       logger: logger
       prompt: prompt
     
@@ -80,10 +81,10 @@ class Commander
   
   execute: (argv, callback) ->
     data = @_parse_args(argv)
-    unless data.command?
-      process.exit(1) unless @commands.help
-      return @_execute_command(name: 'help', opts: data.opts, command: @commands.help, callback)
     
-    @_execute_command(data, callback)
+    return @_execute_command(data, callback) if data.command?
+    return @_execute_command(name: 'help', opts: data.opts, command: @commands.help, callback) if data.name? and @commands.help?
+    return @_execute_command(name: @name, opts: data.opts, command: @commands.__default__, callback) if !data.name? and @commands.__default__?
+    process.exit(1)
 
 module.exports = Commander

@@ -101,6 +101,61 @@ exports.save = (callback) ->
     save_code_to_box(box, callback)
 
 
+exports.load = (box_name, box_version, callback) ->
+  if typeof box_name is 'function'
+    callback = box_name
+    box_name = null
+    box_version = null
+  else if typeof box_version is 'function'
+    callback = box_version
+    box_version = null
+  
+  client = @client.keyed()
+  return cb(errors.unauthorized()) unless client?
+  
+  get_box = (name, cb) =>
+    return no_box(cb) unless name?
+    
+    client.box(name).get (err, box) =>
+      return cb(err) if err?
+      return cb(null, box) if box?
+      
+      @log "Hmm, doesn't look like you have a box with that name."
+      @lob('')
+      no_box(cb)
+  
+  no_box = (cb) =>
+    client.boxes.list (err, boxes) =>
+      return cb(err) if err?
+      
+      if boxes.length is 0
+        @log "Doesn't look like you have any boxes to load."
+        callback()
+      else
+        @log "Want to load one of these?"
+        @log('')
+        
+        x = 0
+        @log "#{++x}) #{b.name}" for b in boxes
+        @prompt.get
+          properties:
+            box:
+              required: true
+              type: 'number'
+              conform: (v) ->
+                v > 0 and v <= boxes.length
+        , (err, data) =>
+          return cb(err) if err?
+          
+          @log('')
+          
+          cb(null, boxes[data.box - 1])
+  
+  get_box box_name () =>
+    console.log arguments
+  
+  # box_config = config(process.cwd() + '/.awesomebox')
+  
 
 # exports.init = (cb) ->
 #   cfg = config(process.cwd() + '/.awesomebox')

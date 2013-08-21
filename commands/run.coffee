@@ -1,0 +1,34 @@
+async = require 'async'
+awesomebox = require 'awesomebox'
+
+exports.__default__ = (cb) ->
+  opts = require('nopt')(
+    watch: Boolean
+    'hunt-port': Boolean
+    port: Number
+    open: Boolean
+  ,
+    p: '--port'
+  , process.argv)
+  
+  opts.watch ?= true
+  opts['hunt-port'] ?= true
+  opts.port ?= Number(process.env.PORT) if process.env.PORT?
+  opts.open ?= true
+  
+  server = new awesomebox.Server(opts)
+  
+  async.series [
+    (cb) -> server.initialize(cb)
+    (cb) -> server.configure(cb)
+    (cb) -> server.start(cb)
+  ], (err) =>
+    if err?
+      console.log err.stack
+      process.exit(1)
+    
+    @log 'Listening on port', server.address.port
+    if opts.open is true
+      host = if server.address.address in ['0.0.0.0', '127.0.0.1'] then 'localhost' else server.address.address
+      port = server.address.port
+      require('awesomebox/node_modules/open')("http://#{host}:#{port}/")

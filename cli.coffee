@@ -5,7 +5,7 @@ errors = require './errors'
 Commander = require './commander'
 AwesomeboxClient = require 'awesomebox.node'
 
-commander = new Commander(require './commands')
+commander = new Commander('awesomebox', require './commands')
 awesomebox_config = config(require('osenv').home() + '/.awesomebox')
 
 
