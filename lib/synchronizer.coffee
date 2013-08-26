@@ -42,6 +42,6 @@ class Synchronizer
         , cb
     ], (err) =>
       return callback(err) if err?
-      box.push(done: true, branch: delta.branch, callback)
+      box.push(done: true, branch: delta.branch, message: box.message, callback)
 
 module.exports = Synchronizer

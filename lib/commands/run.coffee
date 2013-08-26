@@ -1,8 +1,10 @@
 async = require 'async'
-awesomebox = require 'awesomebox'
+nopt = require 'commandment/node_modules/nopt'
 
 exports.__default__ = (cb) ->
-  opts = require('nopt')(
+  awesomebox = require 'awesomebox'
+  
+  opts = nopt(
     watch: Boolean
     'hunt-port': Boolean
     port: Number

@@ -79,22 +79,39 @@ exports.save = (callback) ->
           @log('')
           create_box(cb)
   
-  save_code_to_box = (box, cb) =>
-    @log "Preparing to save #{box.name}..."
+  get_message = (cb) =>
+    @log 'Leave a message to remind yourself of the changes you made.'
     @log('')
-    
-    synchronizer = new Synchronizer(client)
-    synchronizer.sync box, process.cwd(), (msg) =>
-      @log msg
-    , (err, version) =>
+    @prompt.get
+      properties:
+        message:
+          required: false
+    , (err, data) =>
       return cb(err) if err?
-      unless version?
-        @log "All of your files are up to date. Horay!"
-      else
-        @log('')
-        @log "All done saving #{box.name}!"
-        @log "We've created new version " + chalk.cyan(version) + ' for you.'
-      cb()
+      
+      @log('')
+      cb(null, data.message)
+  
+  save_code_to_box = (box, cb) =>
+    get_message (err, message) =>
+      return cb(err) if err?
+      box.message = message
+      
+      @log "Preparing to save #{box.name}..."
+      @log('')
+      
+      synchronizer = new Synchronizer(client)
+      synchronizer.sync box, process.cwd(), (msg) =>
+        @log msg
+      , (err, version) =>
+        return cb(err) if err?
+        unless version?
+          @log "All of your files are up to date. Horay!"
+        else
+          @log('')
+          @log "All done saving #{box.name}!"
+          @log "We've created new version " + chalk.cyan(version) + ' for you.'
+        cb()
   
   get_box (err, box) ->
     return callback(err) if err?
@@ -111,7 +128,7 @@ exports.load = (box_name, box_version, callback) ->
     box_version = null
   
   client = @client.keyed()
-  return cb(errors.unauthorized()) unless client?
+  return callback(errors.unauthorized()) unless client?
   
   get_box = (name, cb) =>
     return no_box(cb) unless name?
@@ -151,8 +168,9 @@ exports.load = (box_name, box_version, callback) ->
           
           cb(null, boxes[data.box - 1])
   
-  get_box box_name () =>
-    console.log arguments
+  get_box box_name, (err, box) =>
+    return cb(err) if err?
+    console.log box
   
   # box_config = config(process.cwd() + '/.awesomebox')
   

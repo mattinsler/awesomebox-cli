@@ -2,12 +2,11 @@ chalk = require 'chalk'
 
 config = require './config'
 errors = require './errors'
-Commander = require './commander'
+Commandment = require 'commandment'
 AwesomeboxClient = require 'awesomebox.node'
 
-commander = new Commander('awesomebox', require './commands')
+module.exports = commands = new Commandment(name: 'awesomebox', command_dir: __dirname + '/commands')
 awesomebox_config = config(require('osenv').home() + '/.awesomebox')
-
 
 handle_error = (err) ->
   if errors.is_unauthorized(err)
@@ -29,13 +28,13 @@ handle_error = (err) ->
 
 header = ->
   @logger.info 'Welcome to ' + chalk.blue.bold('awesomebox')
-  @logger.info 'You are using v' + chalk.cyan(require('./package').version)
+  @logger.info 'You are using v' + chalk.cyan(require('awesomebox/package').version)
 
 footer = ->
   @logger.info chalk.green.bold('ok')
 
 
-commander.before_execute (context, next) ->
+commands.before_execute (context, next) ->
   context.awesomebox_config = awesomebox_config
   
   context.client = (auth = {}) ->
@@ -58,15 +57,13 @@ commander.before_execute (context, next) ->
   
   next()
 
-commander.before_execute (context, next) ->
+commands.before_execute (context, next) ->
   header.call(context)
   context.log('')
   next()
 
-commander.after_execute (context, err, next) ->
+commands.after_execute (context, err, next) ->
   handle_error.call(context, err) if err?
   context.log('')
   footer.call(context)
   next()
-
-commander.execute(process.argv)
