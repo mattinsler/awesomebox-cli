@@ -92,24 +92,24 @@
     });
   };
 
-  exports.me = function(cb) {
+  exports.me = function(callback) {
     var client,
       _this = this;
     client = this.client.keyed();
     if (client == null) {
-      return cb(errors.unauthorized());
+      return callback(errors.unauthorized());
     }
     return client.me.get(function(err, user) {
       var line, _i, _len, _ref;
       if (err != null) {
-        return cb(err);
+        return callback(err);
       }
       _ref = JSON.stringify(user, null, 2).split('\n');
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         line = _ref[_i];
         _this.log(line);
       }
-      return cb();
+      return callback();
     });
   };
 

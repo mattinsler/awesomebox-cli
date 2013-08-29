@@ -2,7 +2,7 @@ async = require 'async'
 nopt = require 'commandment/node_modules/nopt'
 
 exports.__default__ = (cb) ->
-  awesomebox = require 'awesomebox'
+  awesomebox = @get('awesomebox')
   
   opts = nopt(
     watch: Boolean
@@ -33,4 +33,4 @@ exports.__default__ = (cb) ->
     if opts.open is true
       host = if server.address.address in ['0.0.0.0', '127.0.0.1'] then 'localhost' else server.address.address
       port = server.address.port
-      require('awesomebox/node_modules/open')("http://#{host}:#{port}/")
+      require('open')("http://#{host}:#{port}/")

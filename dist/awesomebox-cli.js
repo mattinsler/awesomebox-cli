@@ -1,5 +1,5 @@
 (function() {
-  var AwesomeboxClient, Commandment, awesomebox_config, chalk, commands, config, errors, footer, handle_error, header;
+  var AwesomeboxClient, Commandment, awesomebox_config, chalk, commands, config, describe_error, errors, footer, handle_error, header;
 
   chalk = require('chalk');
 
@@ -18,15 +18,19 @@
 
   awesomebox_config = config(require('osenv').home() + '/.awesomebox');
 
-  handle_error = function(err) {
-    var line, text, _i, _len, _ref, _ref1;
+  describe_error = function(err) {
+    var text, _ref;
     if (errors.is_unauthorized(err)) {
-      this.logger.error('');
-      this.logger.error("Whoa there friend. You should probably login first.");
-      this.logger.error('');
-      return;
+      return "Whoa there friend. You should probably login first.";
     }
-    console.log(err);
+    if (err.code != null) {
+      switch (err.code) {
+        case 'ENOTFOUND':
+          return "I couldn't find the awesomebox server.\nAre you connected to the internet?\nMaybe you're in a cafe that has a shoddy connection. DOH!";
+        case 'EHOSTUNREACH':
+          return "I couldn't reach the awesomebox server.\nI know where it is, but it's not responding to me.\nDon't you hate when that happens?";
+      }
+    }
     text = (_ref = err.body) != null ? _ref.error : void 0;
     if (text == null) {
       text = err.body;
@@ -37,10 +41,15 @@
     if (text == null) {
       text = JSON.stringify(err, null, 2);
     }
+    return text;
+  };
+
+  handle_error = function(err) {
+    var line, _i, _len, _ref;
     this.logger.error('');
-    _ref1 = text.split('\n');
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      line = _ref1[_i];
+    _ref = describe_error(err).split('\n');
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      line = _ref[_i];
       this.logger.error(line);
     }
     return this.logger.error('');
@@ -48,7 +57,7 @@
 
   header = function() {
     this.logger.info('Welcome to ' + chalk.blue.bold('awesomebox'));
-    return this.logger.info('You are using v' + chalk.cyan(require('awesomebox/package').version));
+    return this.logger.info('You are using v' + chalk.cyan(this.get('awesomebox').version));
   };
 
   footer = function() {

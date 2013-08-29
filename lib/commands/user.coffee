@@ -64,12 +64,12 @@ exports.redeem = (cb) ->
           
           cb()
 
-exports.me = (cb) ->
+exports.me = (callback) ->
   client = @client.keyed()
-  return cb(errors.unauthorized()) unless client?
+  return callback(errors.unauthorized()) unless client?
   
   client.me.get (err, user) =>
-    return cb(err) if err?
+    return callback(err) if err?
     @log(line) for line in JSON.stringify(user, null, 2).split('\n')
   
-    cb()
+    callback()

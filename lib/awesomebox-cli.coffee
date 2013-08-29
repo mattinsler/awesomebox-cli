@@ -8,27 +8,31 @@ AwesomeboxClient = require 'awesomebox.node'
 module.exports = commands = new Commandment(name: 'awesomebox', command_dir: __dirname + '/commands')
 awesomebox_config = config(require('osenv').home() + '/.awesomebox')
 
-handle_error = (err) ->
-  if errors.is_unauthorized(err)
-    @logger.error('')
-    @logger.error "Whoa there friend. You should probably login first."
-    @logger.error('')
-    return
+describe_error = (err) ->
+  return "Whoa there friend. You should probably login first." if errors.is_unauthorized(err)
   
-  console.log err
+  if err.code?
+    switch err.code
+      when 'ENOTFOUND'
+        return "I couldn't find the awesomebox server.\nAre you connected to the internet?\nMaybe you're in a cafe that has a shoddy connection. DOH!"
+      when 'EHOSTUNREACH'
+        return "I couldn't reach the awesomebox server.\nI know where it is, but it's not responding to me.\nDon't you hate when that happens?"
+  
+  # console.log err
   text = err.body?.error
   text ?= err.body
   text ?= err.message
   text ?= JSON.stringify(err, null, 2)
-  
-  @logger.error('')
-  @logger.error(line) for line in text.split('\n')
-  @logger.error('')
+  text
 
+handle_error = (err) ->
+  @logger.error('')
+  @logger.error(line) for line in describe_error(err).split('\n')
+  @logger.error('')
 
 header = ->
   @logger.info 'Welcome to ' + chalk.blue.bold('awesomebox')
-  @logger.info 'You are using v' + chalk.cyan(require('awesomebox/package').version)
+  @logger.info 'You are using v' + chalk.cyan(@get('awesomebox').version)
 
 footer = ->
   @logger.info chalk.green.bold('ok')

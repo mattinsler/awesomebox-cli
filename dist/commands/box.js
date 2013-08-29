@@ -14,7 +14,7 @@
       _this = this;
     client = this.client.keyed();
     if (client == null) {
-      return cb(errors.unauthorized());
+      return callback(errors.unauthorized());
     }
     box_config = config(process.cwd() + '/.awesomebox');
     get_box = function(cb) {
@@ -69,41 +69,40 @@
           _this.log("Let's fix that. Name your new box.");
           _this.log('');
           return create_box(cb);
-        } else {
-          _this.log("Are you saving a box that already exists? Maybe one of these?");
-          _this.log('');
-          x = 0;
-          for (_i = 0, _len = boxes.length; _i < _len; _i++) {
-            b = boxes[_i];
-            _this.log("" + (++x) + ") " + b.name);
-          }
-          _this.log("" + (++x) + ") Create a new box");
-          return _this.prompt.get({
-            properties: {
-              box: {
-                required: true,
-                type: 'number',
-                conform: function(v) {
-                  return v > 0 && v <= boxes.length + 1;
-                }
+        }
+        _this.log("Are you saving a box that already exists? Maybe one of these?");
+        _this.log('');
+        x = 0;
+        for (_i = 0, _len = boxes.length; _i < _len; _i++) {
+          b = boxes[_i];
+          _this.log("" + (++x) + ") " + b.name);
+        }
+        _this.log("" + (++x) + ") Create a new box");
+        return _this.prompt.get({
+          properties: {
+            box: {
+              required: true,
+              type: 'number',
+              conform: function(v) {
+                return v > 0 && v <= boxes.length + 1;
               }
             }
-          }, function(err, data) {
-            var box;
-            if (err != null) {
-              return cb(err);
-            }
-            _this.log('');
-            if (data.box <= boxes.length) {
-              box = boxes[data.box - 1];
-              box_config.set(box);
-              return cb(null, box);
-            }
-            _this.log("OK cool. Let's get that new box setup for you.");
-            _this.log('');
-            return create_box(cb);
-          });
-        }
+          }
+        }, function(err, data) {
+          var box;
+          if (err != null) {
+            return cb(err);
+          }
+          _this.log('');
+          if (data.box <= boxes.length) {
+            box = boxes[data.box - 1];
+            box_config.set(box);
+            return cb(null, box);
+          }
+          _this.log("OK cool. Let's get that new box setup for you.");
+          _this.log('');
+          return create_box(cb);
+        });
       });
     };
     get_message = function(cb) {
@@ -124,30 +123,39 @@
       });
     };
     save_code_to_box = function(box, cb) {
-      return get_message(function(err, message) {
-        var synchronizer;
+      var synchronizer;
+      _this.log("Preparing to save " + box.name + "...");
+      _this.log('');
+      synchronizer = new Synchronizer(client);
+      return synchronizer.sync({
+        box: box.id,
+        root: process.cwd(),
+        on_progress: function(msg) {
+          return _this.log(msg);
+        },
+        collect_metadata: function(meta_cb) {
+          return get_message(function(err, message) {
+            if (err != null) {
+              return meta_cb(err);
+            }
+            return meta_cb(null, {
+              message: message
+            });
+          });
+        }
+      }, function(err, version) {
         if (err != null) {
           return cb(err);
         }
-        box.message = message;
-        _this.log("Preparing to save " + box.name + "...");
-        _this.log('');
-        synchronizer = new Synchronizer(client);
-        return synchronizer.sync(box, process.cwd(), function(msg) {
-          return _this.log(msg);
-        }, function(err, version) {
-          if (err != null) {
-            return cb(err);
-          }
-          if (version == null) {
-            _this.log("All of your files are up to date. Horay!");
-          } else {
-            _this.log('');
-            _this.log("All done saving " + box.name + "!");
-            _this.log("We've created new version " + chalk.cyan(version) + ' for you.');
-          }
-          return cb();
-        });
+        if (version == null) {
+          _this.log("All of your files are up to date. Horay!");
+        } else {
+          _this.log('');
+          _this.log("All done saving " + box.name + "!");
+          _this.log("We've created new version " + (chalk.cyan(version.name)) + " for you.");
+          _this.log("You can see it at " + (chalk.cyan('http://' + version.domain)) + ".");
+        }
+        return cb();
       });
     };
     return get_box(function(err, box) {
@@ -159,7 +167,7 @@
   };
 
   exports.load = function(box_name, box_version, callback) {
-    var client, get_box, no_box,
+    var client, get_box, get_version, no_box, no_version,
       _this = this;
     if (typeof box_name === 'function') {
       callback = box_name;
@@ -198,39 +206,85 @@
         if (boxes.length === 0) {
           _this.log("Doesn't look like you have any boxes to load.");
           return callback();
+        }
+        _this.log("Want to load one of these?");
+        _this.log('');
+        x = 0;
+        for (_i = 0, _len = boxes.length; _i < _len; _i++) {
+          b = boxes[_i];
+          _this.log("" + (++x) + ") " + b.name);
+        }
+        return _this.prompt.get({
+          properties: {
+            box: {
+              required: true,
+              type: 'number',
+              conform: function(v) {
+                return v > 0 && v <= boxes.length;
+              }
+            }
+          }
+        }, function(err, data) {
+          if (err != null) {
+            return cb(err);
+          }
+          _this.log('');
+          console.log('got box');
+          return cb(null, boxes[data.box - 1]);
+        });
+      });
+    };
+    get_version = function(box, version, cb) {
+      console.log('get_version', arguments);
+      if (version == null) {
+        return no_version(box, cb);
+      }
+      return client.box(box.id).version(version).get(function(err, box) {
+        if (err != null) {
+          return cb(err);
+        }
+        if (box != null) {
+          return cb(null, box);
+        }
+        _this.log("Hmm, doesn't look like " + (chalk.magenta(box.name)) + " has that version.");
+        _this.lob('');
+        return no_version(box, cb);
+      });
+    };
+    no_version = function(box, cb) {
+      return client.box(box.id).versions.list(function(err, versions) {
+        var v, x, _i, _len;
+        if (err != null) {
+          return cb(err);
+        }
+        console.log(versions);
+        if (versions.length === 0) {
+          _this.log("Doesn't look like " + box.name + " has any versions to load.");
+          return callback();
         } else {
           _this.log("Want to load one of these?");
           _this.log('');
           x = 0;
-          for (_i = 0, _len = boxes.length; _i < _len; _i++) {
-            b = boxes[_i];
-            _this.log("" + (++x) + ") " + b.name);
+          for (_i = 0, _len = versions.length; _i < _len; _i++) {
+            v = versions[_i];
+            _this.log("" + (++x) + ") " + v.name);
           }
-          return _this.prompt.get({
-            properties: {
-              box: {
-                required: true,
-                type: 'number',
-                conform: function(v) {
-                  return v > 0 && v <= boxes.length;
-                }
-              }
-            }
-          }, function(err, data) {
-            if (err != null) {
-              return cb(err);
-            }
-            _this.log('');
-            return cb(null, boxes[data.box - 1]);
-          });
+          return callback();
         }
       });
     };
     return get_box(box_name, function(err, box) {
       if (err != null) {
-        return cb(err);
+        return callback(err);
       }
-      return console.log(box);
+      console.log(box);
+      console.log('call get_version');
+      return get_version(box, box_version, function(err, version) {
+        if (err != null) {
+          return callback(err);
+        }
+        return console.log(version);
+      });
     });
   };
 

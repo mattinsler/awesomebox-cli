@@ -5,7 +5,7 @@ Synchronizer = require '../synchronizer'
 
 exports.save = (callback) ->
   client = @client.keyed()
-  return cb(errors.unauthorized()) unless client?
+  return callback(errors.unauthorized()) unless client?
   
   box_config = config(process.cwd() + '/.awesomebox')
   
@@ -50,34 +50,34 @@ exports.save = (callback) ->
       if boxes.length is 0
         @log "Let's fix that. Name your new box."
         @log('')
-        create_box(cb)
-      else
-        @log "Are you saving a box that already exists? Maybe one of these?"
+        return create_box(cb)
+      
+      @log "Are you saving a box that already exists? Maybe one of these?"
+      @log('')
+      
+      x = 0
+      @log "#{++x}) #{b.name}" for b in boxes
+      @log "#{++x}) Create a new box"
+      @prompt.get
+        properties:
+          box:
+            required: true
+            type: 'number'
+            conform: (v) ->
+              v > 0 and v <= boxes.length + 1
+      , (err, data) =>
+        return cb(err) if err?
+        
         @log('')
         
-        x = 0
-        @log "#{++x}) #{b.name}" for b in boxes
-        @log "#{++x}) Create a new box"
-        @prompt.get
-          properties:
-            box:
-              required: true
-              type: 'number'
-              conform: (v) ->
-                v > 0 and v <= boxes.length + 1
-        , (err, data) =>
-          return cb(err) if err?
-          
-          @log('')
-          
-          if data.box <= boxes.length
-            box = boxes[data.box - 1]
-            box_config.set(box)
-            return cb(null, box)
-          
-          @log "OK cool. Let's get that new box setup for you."
-          @log('')
-          create_box(cb)
+        if data.box <= boxes.length
+          box = boxes[data.box - 1]
+          box_config.set(box)
+          return cb(null, box)
+        
+        @log "OK cool. Let's get that new box setup for you."
+        @log('')
+        create_box(cb)
   
   get_message = (cb) =>
     @log 'Leave a message to remind yourself of the changes you made.'
@@ -93,25 +93,28 @@ exports.save = (callback) ->
       cb(null, data.message)
   
   save_code_to_box = (box, cb) =>
-    get_message (err, message) =>
+    @log "Preparing to save #{box.name}..."
+    @log('')
+    
+    synchronizer = new Synchronizer(client)
+    synchronizer.sync
+      box: box.id
+      root: process.cwd()
+      on_progress: (msg) => @log(msg)
+      collect_metadata: (meta_cb) ->
+        get_message (err, message) ->
+          return meta_cb(err) if err?
+          meta_cb(null, message: message)
+    , (err, version) =>
       return cb(err) if err?
-      box.message = message
-      
-      @log "Preparing to save #{box.name}..."
-      @log('')
-      
-      synchronizer = new Synchronizer(client)
-      synchronizer.sync box, process.cwd(), (msg) =>
-        @log msg
-      , (err, version) =>
-        return cb(err) if err?
-        unless version?
-          @log "All of your files are up to date. Horay!"
-        else
-          @log('')
-          @log "All done saving #{box.name}!"
-          @log "We've created new version " + chalk.cyan(version) + ' for you.'
-        cb()
+      unless version?
+        @log "All of your files are up to date. Horay!"
+      else
+        @log('')
+        @log "All done saving #{box.name}!"
+        @log "We've created new version #{chalk.cyan(version.name)} for you."
+        @log "You can see it at #{chalk.cyan('http://' + version.domain)}."
+      cb()
   
   get_box (err, box) ->
     return callback(err) if err?
@@ -147,30 +150,79 @@ exports.load = (box_name, box_version, callback) ->
       
       if boxes.length is 0
         @log "Doesn't look like you have any boxes to load."
+        return callback()
+
+      @log "Want to load one of these?"
+      @log('')
+      
+      x = 0
+      @log "#{++x}) #{b.name}" for b in boxes
+      @prompt.get
+        properties:
+          box:
+            required: true
+            type: 'number'
+            conform: (v) ->
+              v > 0 and v <= boxes.length
+      , (err, data) =>
+        return cb(err) if err?
+        
+        @log('')
+        console.log 'got box'
+        cb(null, boxes[data.box - 1])
+  
+  get_version = (box, version, cb) =>
+    console.log 'get_version', arguments
+    return no_version(box, cb) unless version?
+    
+    client.box(box.id).version(version).get (err, box) =>
+      return cb(err) if err?
+      return cb(null, box) if box?
+      
+      @log "Hmm, doesn't look like #{chalk.magenta(box.name)} has that version."
+      @lob('')
+      no_version(box, cb)
+  
+  no_version = (box, cb) =>
+    client.box(box.id).versions.list (err, versions) =>
+      return cb(err) if err?
+      
+      console.log versions
+      
+      if versions.length is 0
+        @log "Doesn't look like #{box.name} has any versions to load."
         callback()
       else
         @log "Want to load one of these?"
         @log('')
         
         x = 0
-        @log "#{++x}) #{b.name}" for b in boxes
-        @prompt.get
-          properties:
-            box:
-              required: true
-              type: 'number'
-              conform: (v) ->
-                v > 0 and v <= boxes.length
-        , (err, data) =>
-          return cb(err) if err?
-          
-          @log('')
-          
-          cb(null, boxes[data.box - 1])
+        @log "#{++x}) #{v.name}" for v in versions
+        callback()
+        # @prompt.get
+        #   properties:
+        #     box:
+        #       required: true
+        #       type: 'number'
+        #       conform: (v) ->
+        #         v > 0 and v <= boxes.length
+        # , (err, data) =>
+        #   return cb(err) if err?
+        #   
+        #   @log('')
+        #   
+        #   cb(null, boxes[data.box - 1])
   
   get_box box_name, (err, box) =>
-    return cb(err) if err?
+    return callback(err) if err?
     console.log box
+    console.log 'call get_version'
+    get_version box, box_version, (err, version) =>
+      return callback(err) if err?
+      console.log version
+    
+    # Check if current folder is empty
+    # Ask to overwrite
   
   # box_config = config(process.cwd() + '/.awesomebox')
   

@@ -34,7 +34,8 @@
     "awesomebox.node": "0.0.7",
     "async": "~0.2.9",
     "syncr": "0.0.1",
-    "commandment": "0.0.1"
+    "commandment": "0.0.1",
+    "open": "0.0.4"
   },
   "devDependencies": {
     "grunt": "~0.3.15",
