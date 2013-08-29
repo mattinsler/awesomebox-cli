@@ -31,7 +31,7 @@
     "json3": "~3.2.5",
     "walkabout": "~0.1.6",
     "underscore": "~1.5.1",
-    "awesomebox.node": "0.0.7",
+    "awesomebox.node": "0.0.8",
     "async": "~0.2.9",
     "syncr": "0.0.1",
     "commandment": "0.0.1",
