@@ -31,11 +31,12 @@
     "json3": "~3.2.5",
     "walkabout": "~0.1.6",
     "underscore": "~1.5.1",
-    "awesomebox.node": "0.0.8",
+    "awesomebox.node": "0.0.9",
     "async": "~0.2.9",
     "syncr": "0.0.1",
     "commandment": "0.0.1",
-    "open": "0.0.4"
+    "open": "0.0.4",
+    "moment": "~2.1.0"
   },
   "devDependencies": {
     "grunt": "~0.3.15",
