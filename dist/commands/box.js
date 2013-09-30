@@ -177,6 +177,9 @@
       callback = box_version;
       box_version = null;
     }
+    this.log("We're sorry! " + (chalk.cyan('awesomebox load')) + " isn't ready for action yet.");
+    this.log("For now, go to http://www.awesomebox.co to download the code for a version.");
+    return callback();
     client = this.client.keyed();
     if (client == null) {
       return callback(errors.unauthorized());

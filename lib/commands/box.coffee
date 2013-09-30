@@ -129,6 +129,11 @@ exports.load = (box_name, box_version, callback) ->
   else if typeof box_version is 'function'
     callback = box_version
     box_version = null
+
+  @log "We're sorry! #{chalk.cyan('awesomebox load')} isn't ready for action yet."
+  @log "For now, go to http://www.awesomebox.co to download the code for a version."
+
+  return callback()
   
   client = @client.keyed()
   return callback(errors.unauthorized()) unless client?
