@@ -1,7 +1,7 @@
 {
   "name": "awesomebox-cli",
   "description": "CLI for awesomebox",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/mattinsler/awesomebox-cli",
   "author": {
     "name": "Matt Insler",
@@ -31,7 +31,7 @@
     "json3": "~3.2.5",
     "walkabout": "~0.1.6",
     "underscore": "~1.5.1",
-    "awesomebox.node": "0.0.9",
+    "awesomebox.node": "0.0.15",
     "async": "~0.2.9",
     "syncr": "0.0.1",
     "commandment": "0.0.1",
