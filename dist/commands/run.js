@@ -32,26 +32,22 @@
       opts.open = true;
     }
     server = new awesomebox.Server(opts);
-    return async.series([
-      function(cb) {
-        return server.initialize(cb);
-      }, function(cb) {
-        return server.configure(cb);
-      }, function(cb) {
-        return server.start(cb);
-      }
-    ], function(err) {
+    return server.start().then(function() {
       var host, port, _ref4;
-      if (err != null) {
-        console.log(err.stack);
-        process.exit(1);
-      }
       _this.log('Listening on port', server.address.port);
       if (opts.open === true) {
         host = (_ref4 = server.address.address) === '0.0.0.0' || _ref4 === '127.0.0.1' ? 'localhost' : server.address.address;
         port = server.address.port;
         return require('open')("http://" + host + ":" + port + "/");
       }
+    })["catch"](function(err) {
+      var line, _i, _len, _ref4;
+      _ref4 = err.stack.split('\n');
+      for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+        line = _ref4[_i];
+        _this.error(line);
+      }
+      return process.exit(1);
     });
   };
 

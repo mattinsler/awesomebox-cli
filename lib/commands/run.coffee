@@ -19,18 +19,13 @@ exports.__default__ = (cb) ->
   opts.open ?= true
   
   server = new awesomebox.Server(opts)
-  
-  async.series [
-    (cb) -> server.initialize(cb)
-    (cb) -> server.configure(cb)
-    (cb) -> server.start(cb)
-  ], (err) =>
-    if err?
-      console.log err.stack
-      process.exit(1)
-    
+  server.start()
+  .then =>
     @log 'Listening on port', server.address.port
     if opts.open is true
       host = if server.address.address in ['0.0.0.0', '127.0.0.1'] then 'localhost' else server.address.address
       port = server.address.port
       require('open')("http://#{host}:#{port}/")
+  .catch (err) =>
+    @error(line) for line in err.stack.split('\n')
+    process.exit(1)
